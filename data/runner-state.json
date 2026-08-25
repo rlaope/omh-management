@@ -1,0 +1,23 @@
+{
+  "blocked_by": [],
+  "briefing_due": true,
+  "claim_boundary": "Runner state coordinates workers; it is not implementation, verification, GitHub write, or OMH repo cleanup evidence by itself.",
+  "claimed_by": "",
+  "completed_actions": [
+    {
+      "action": "Keep OMH repo cleanup blocked until owner approval; otherwise advance only safe omh-management dashboard loop work",
+      "completed_at": "2026-08-25T07:17:18Z",
+      "lease_id": "9b8cd131c8540f2e",
+      "observed_result": "API runner lease check passed",
+      "worker": "bipani-api-test"
+    }
+  ],
+  "goal": "Run OMH Management as a shared goal loop until scout intake, safe issue raising, checkpoint briefing, and blocked OMH cleanup are all visible and verified.",
+  "lease_expires_at": "",
+  "lease_id": "",
+  "next_action": "brief room with runner verification result",
+  "observed_result": "API runner lease check passed",
+  "schema_version": "runner_state/v1",
+  "stage": "verified",
+  "updated_at": "2026-08-25T07:17:18Z"
+}

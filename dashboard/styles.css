@@ -64,9 +64,9 @@ button:disabled, .disabled { opacity: 0.5; cursor: not-allowed; }
 pre { white-space: pre-wrap; background: #0b1016; border: 1px solid var(--border); border-radius: 12px; padding: 14px; color: #c9d1d9; min-height: 180px; }
 .gate-list { display: grid; gap: 8px; }
 .gate { padding: 10px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); color: #fde68a; }
-.briefing-status { display: grid; gap: 6px; color: var(--muted); }
-.briefing-status strong { color: var(--text); }
-.briefing-status span { display: block; }
+.briefing-status, .runner-state { display: grid; gap: 6px; color: var(--muted); }
+.briefing-status strong, .runner-state strong { color: var(--text); }
+.briefing-status span, .runner-state span { display: block; }
 .audit-log { display: grid; gap: 10px; }
 .audit { border-bottom: 1px solid var(--border); padding-bottom: 10px; color: var(--muted); }
 .audit strong { color: var(--text); display: block; margin-bottom: 4px; }

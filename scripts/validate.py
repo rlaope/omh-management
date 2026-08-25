@@ -40,6 +40,21 @@ BRIEFING_REQUIRED = {
     "observed_result",
     "details",
 }
+RUNNER_REQUIRED = {
+    "schema_version",
+    "goal",
+    "stage",
+    "next_action",
+    "claimed_by",
+    "lease_id",
+    "lease_expires_at",
+    "observed_result",
+    "blocked_by",
+    "briefing_due",
+    "completed_actions",
+    "updated_at",
+    "claim_boundary",
+}
 
 
 def load_json(path: Path):
@@ -88,17 +103,31 @@ def validate_briefing_event(item: dict) -> list[str]:
     return errors
 
 
+def validate_runner_state(item: dict) -> list[str]:
+    errors: list[str] = []
+    missing = sorted(RUNNER_REQUIRED - set(item))
+    if missing:
+        errors.append(f"runner-state: missing {', '.join(missing)}")
+    if item.get("schema_version") != "runner_state/v1":
+        errors.append("runner-state: invalid schema_version")
+    if item.get("blocked_by") and item.get("claimed_by"):
+        errors.append("runner-state: blocked state must not keep an active claim")
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     candidates = load_json(ROOT / "data" / "sample-candidates.json")
     audit = load_json(ROOT / "data" / "sample-audit-log.json")
     briefing = load_json(ROOT / "data" / "sample-briefing-log.json")
+    runner_state = load_json(ROOT / "data" / "runner-state.json")
     for item in candidates:
         errors.extend(validate_candidate(item))
     for item in audit:
         errors.extend(validate_audit_event(item))
     for item in briefing:
         errors.extend(validate_briefing_event(item))
+    errors.extend(validate_runner_state(runner_state))
 
     required_files = [
         ROOT / "PRODUCT_CONTRACT.md",
@@ -108,6 +137,8 @@ def main() -> int:
         ROOT / "dashboard" / "app.js",
         ROOT / "scripts" / "manage.py",
         ROOT / "scripts" / "server.py",
+        ROOT / "scripts" / "runner.py",
+        ROOT / "data" / "runner-state.json",
         ROOT / "data" / "source-state.json",
     ]
     for path in required_files:
@@ -124,6 +155,7 @@ def main() -> int:
                 "candidate_count": len(candidates),
                 "audit_event_count": len(audit),
                 "briefing_event_count": len(briefing),
+                "runner_stage": runner_state.get("stage"),
             },
             indent=2,
         )

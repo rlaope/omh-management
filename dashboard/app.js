@@ -2,6 +2,7 @@ const state = {
   candidates: [],
   audit: [],
   briefing: [],
+  runner: null,
   filter: 'all',
   apiMode: false,
 };
@@ -32,14 +33,16 @@ async function loadJson(path) {
 
 async function loadState() {
   try {
-    const [candidatePayload, auditPayload, briefingPayload] = await Promise.all([
+    const [candidatePayload, auditPayload, briefingPayload, runnerPayload] = await Promise.all([
       requestJson('/api/candidates'),
       requestJson('/api/audit'),
       requestJson('/api/briefing'),
+      requestJson('/api/runner'),
     ]);
     state.candidates = candidatePayload.candidates;
     state.audit = auditPayload.audit;
     state.briefing = briefingPayload.briefing;
+    state.runner = runnerPayload.state;
     state.apiMode = true;
   } catch (_error) {
     [state.candidates, state.audit, state.briefing] = await Promise.all([
@@ -48,6 +51,7 @@ async function loadState() {
       loadJson('../data/sample-briefing-log.json'),
     ]);
     state.apiMode = false;
+    state.runner = null;
   }
 }
 
@@ -69,6 +73,25 @@ function renderSummary() {
   const mode = document.querySelector('#mode-status');
   if (mode) mode.textContent = state.apiMode ? 'persisted API mode' : 'static preview mode';
   renderBriefingStatus();
+  renderRunnerStatus();
+}
+
+function renderRunnerStatus() {
+  const panel = document.querySelector('#runner-state');
+  if (!panel) return;
+  if (!state.runner) {
+    panel.innerHTML = '<strong>static preview</strong><span>Runner API is not connected.</span>';
+    return;
+  }
+  const blocked = state.runner.blocked_by && state.runner.blocked_by.length ? state.runner.blocked_by.join(', ') : 'none';
+  const lease = state.runner.claimed_by ? `${state.runner.claimed_by} until ${state.runner.lease_expires_at}` : 'unclaimed';
+  panel.innerHTML = `
+    <strong>${escapeHtml(state.runner.stage)} · ${escapeHtml(state.runner.next_action || 'complete')}</strong>
+    <span>goal: ${escapeHtml(state.runner.goal)}</span>
+    <span>lease: ${escapeHtml(lease)}</span>
+    <span>blocked_by: ${escapeHtml(blocked)}</span>
+    <span>observed_result: ${escapeHtml(state.runner.observed_result || 'not recorded')}</span>
+  `;
 }
 
 function renderBriefingStatus() {
@@ -280,6 +303,25 @@ function wireEvents() {
       window.alert(error.message || String(error));
     }
   });
+  const claimRunner = document.querySelector('#claim-runner');
+  if (claimRunner) {
+    claimRunner.addEventListener('click', async () => {
+      if (!state.apiMode) {
+        window.alert('Runner claim requires persisted API mode.');
+        return;
+      }
+      try {
+        const payload = await requestJson('/api/runner/claim', {
+          method: 'POST',
+          body: JSON.stringify({ worker: 'dashboard', lease_seconds: 900 }),
+        });
+        state.runner = payload.state;
+        renderRunnerStatus();
+      } catch (error) {
+        window.alert(error.message || String(error));
+      }
+    });
+  }
 }
 
 function escapeHtml(value) {
