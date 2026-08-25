@@ -77,5 +77,29 @@
     "triage_state": "watch",
     "upstream_source": "Product contract",
     "user_facing_intent": "Show me daily learning candidates without polluting GitHub backlog."
+  },
+  {
+    "blocked_by": [],
+    "candidate_id": "scout_47bd6a598896",
+    "changed_contract": "Scout fetched upstream docs and recorded a source hash for operator review.",
+    "claim_boundary": "Daily scout evidence only; this is not implementation, review, CI, merge, or local runtime observation evidence.",
+    "evidence_type": "docs",
+    "executor_neutrality_impact": "Candidate is executor-neutral until a specific OMH surface owner accepts implementation.",
+    "implementation_status": "none",
+    "issue_candidate": true,
+    "issue_draft": {
+      "body": "## Upstream evidence\n- Source: Hermes docs\n- URL: https://hermes-agent.nousresearch.com/docs\n- Content hash: 1812b656ab39836a759dd2f21ca082179e244ec5585950b9ecb94106463da485\n\n## OMH Management mapping\nScout fetched upstream docs and recorded a source hash for operator review.\n\n## Boundary\nUpstream evidence only; not locally observed.",
+      "dedupe_query": "repo:rlaope/omh-management is:issue Review Hermes docs changes for OMH Management",
+      "title": "Review Hermes docs changes for OMH Management"
+    },
+    "observed_evidence": [],
+    "prepared_vs_observed_impact": "Scout fetched upstream evidence and recorded a source hash; no local Hermes runtime behavior was observed.",
+    "schema_version": "scout_candidate/v1",
+    "source_date": "2026-08-25",
+    "target_surface": "dashboard",
+    "title": "Review Hermes docs changes for OMH Management",
+    "triage_state": "watch",
+    "upstream_source": "Hermes docs: https://hermes-agent.nousresearch.com/docs",
+    "user_facing_intent": "Show daily Hermes learning candidates in the management console."
   }
 ]

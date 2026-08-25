@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,8 @@ class ManagementHandler(SimpleHTTPRequestHandler):
                 return self._json({"ok": True, "candidates": manage.load_candidates()})
             if path == "/api/audit":
                 return self._json({"ok": True, "audit": manage.load_audit()})
+            if path == "/api/briefing":
+                return self._json({"ok": True, "briefing": manage.load_briefing()})
             return super().do_GET()
         except Exception as exc:  # pragma: no cover - network error surface
             return self._json({"ok": False, "error": str(exc)}, status=500)
@@ -77,8 +80,9 @@ class ManagementHandler(SimpleHTTPRequestHandler):
 
 
 def main() -> int:
-    server = ThreadingHTTPServer(("127.0.0.1", 4174), ManagementHandler)
-    print("OMH Management server: http://127.0.0.1:4174/dashboard/index.html", flush=True)
+    port = int(os.environ.get("OMH_MANAGEMENT_PORT", "4174"))
+    server = ThreadingHTTPServer(("127.0.0.1", port), ManagementHandler)
+    print(f"OMH Management server: http://127.0.0.1:{port}/dashboard/index.html", flush=True)
     server.serve_forever()
     return 0
 

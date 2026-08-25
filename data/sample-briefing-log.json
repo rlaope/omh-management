@@ -1,0 +1,35 @@
+[
+  {
+    "actor": "ribyungi",
+    "blocked_by": [
+      "OMH repo cleanup: blocked_by destructive approval"
+    ],
+    "candidate_id": "",
+    "details": {
+      "briefing_events_are_not_evidence_events": true
+    },
+    "event_id": "briefing_contract_locked_sample",
+    "next_action": "wire data schema, dashboard persistence, and issue gates",
+    "observed_result": "PRODUCT_CONTRACT.md exists; this briefing is not verification evidence by itself",
+    "recorded_at": "2026-08-24T16:00:00Z",
+    "schema_version": "briefing_event/v1",
+    "stage": "contract_locked",
+    "status": "complete"
+  },
+  {
+    "actor": "daily-scout",
+    "blocked_by": [],
+    "candidate_id": "scout_47bd6a598896",
+    "details": {
+      "briefing_events_are_not_evidence_events": true,
+      "content_hash": "1812b656ab39836a759dd2f21ca082179e244ec5585950b9ecb94106463da485"
+    },
+    "event_id": "briefing_385c66d04059",
+    "next_action": "review candidate in dashboard",
+    "observed_result": "HTTP 200 https://hermes-agent.nousresearch.com/docs",
+    "recorded_at": "2026-08-25T04:37:33Z",
+    "schema_version": "briefing_event/v1",
+    "stage": "daily_scout",
+    "status": "changed"
+  }
+]

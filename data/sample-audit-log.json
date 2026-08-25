@@ -100,5 +100,47 @@
     "event_type": "github_issue_blocked",
     "recorded_at": "2026-08-25T04:28:41Z",
     "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "daily-scout",
+    "candidate_id": "scout_47bd6a598896",
+    "details": {
+      "changed": true,
+      "content_hash": "1812b656ab39836a759dd2f21ca082179e244ec5585950b9ecb94106463da485",
+      "external_write": false,
+      "recorded": true,
+      "source_url": "https://hermes-agent.nousresearch.com/docs"
+    },
+    "event_id": "audit_daily_scout_recorded_7f7fc0fbac8d",
+    "event_type": "daily_scout_recorded",
+    "recorded_at": "2026-08-25T04:37:33Z",
+    "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "operator",
+    "candidate_id": "scout_47bd6a598896",
+    "details": {
+      "dedupe_query": "repo:rlaope/omh-management is:issue Review Hermes docs changes for OMH Management",
+      "external_write": false
+    },
+    "event_id": "audit_issue_previewed_ab22f3286e3f",
+    "event_type": "issue_previewed",
+    "recorded_at": "2026-08-25T04:37:42Z",
+    "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "operator",
+    "candidate_id": "scout_47bd6a598896",
+    "details": {
+      "attempt_recorded_before_write": true,
+      "dedupe_evidence_sha256": "e23b77104d21da0dd091195a3df33c2ebf94ed3d4e6b6155c17235fb151b5da5",
+      "external_write": false,
+      "repo": "rlaope/omh-management",
+      "source": "dashboard"
+    },
+    "event_id": "audit_github_issue_blocked_ab22f3286e3f",
+    "event_type": "github_issue_blocked",
+    "recorded_at": "2026-08-25T04:37:42Z",
+    "schema_version": "audit_event/v1"
   }
 ]

@@ -1,6 +1,7 @@
 const state = {
   candidates: [],
   audit: [],
+  briefing: [],
   filter: 'all',
   apiMode: false,
 };
@@ -31,17 +32,20 @@ async function loadJson(path) {
 
 async function loadState() {
   try {
-    const [candidatePayload, auditPayload] = await Promise.all([
+    const [candidatePayload, auditPayload, briefingPayload] = await Promise.all([
       requestJson('/api/candidates'),
       requestJson('/api/audit'),
+      requestJson('/api/briefing'),
     ]);
     state.candidates = candidatePayload.candidates;
     state.audit = auditPayload.audit;
+    state.briefing = briefingPayload.briefing;
     state.apiMode = true;
   } catch (_error) {
-    [state.candidates, state.audit] = await Promise.all([
+    [state.candidates, state.audit, state.briefing] = await Promise.all([
       loadJson('../data/sample-candidates.json'),
       loadJson('../data/sample-audit-log.json'),
+      loadJson('../data/sample-briefing-log.json'),
     ]);
     state.apiMode = false;
   }
@@ -64,6 +68,23 @@ function renderSummary() {
   ].join('');
   const mode = document.querySelector('#mode-status');
   if (mode) mode.textContent = state.apiMode ? 'persisted API mode' : 'static preview mode';
+  renderBriefingStatus();
+}
+
+function renderBriefingStatus() {
+  const latest = state.briefing[state.briefing.length - 1];
+  const panel = document.querySelector('#briefing-status');
+  if (!panel) return;
+  if (!latest) {
+    panel.innerHTML = '<strong>not briefed</strong><span>No briefing events recorded yet.</span>';
+    return;
+  }
+  panel.innerHTML = `
+    <strong>${escapeHtml(latest.stage)} · ${escapeHtml(latest.status)}</strong>
+    <span>last_briefed_at: ${escapeHtml(latest.recorded_at)}</span>
+    <span>next_action: ${escapeHtml(latest.next_action)}</span>
+    <span>observed_result: ${escapeHtml(latest.observed_result || 'briefing only; not evidence')}</span>
+  `;
 }
 
 function renderCandidates() {
@@ -94,6 +115,7 @@ function renderCandidates() {
         <button data-candidate="${item.candidate_id}" data-action="ignore">Mark ignore</button>
         <button data-candidate="${item.candidate_id}" data-action="preview" ${item.issue_candidate ? '' : 'disabled'}>Issue preview</button>
         <button data-candidate="${item.candidate_id}" data-action="create" ${item.issue_candidate && state.apiMode ? '' : 'disabled'}>Dry-run create gate</button>
+        <button class="danger" data-candidate="${item.candidate_id}" data-action="confirmed-create" ${item.issue_candidate && state.apiMode ? '' : 'disabled'}>Confirmed GitHub create</button>
       </div>
     </article>
   `).join('');
@@ -104,6 +126,12 @@ function renderAudit() {
     <div class="audit">
       <strong>${escapeHtml(event.event_type)}</strong>
       <span>${escapeHtml(event.recorded_at)} · ${escapeHtml(event.actor)} · ${escapeHtml(event.candidate_id)}</span>
+    </div>
+  `).join('');
+  document.querySelector('#briefing-log').innerHTML = state.briefing.slice().reverse().map((event) => `
+    <div class="audit briefing">
+      <strong>${escapeHtml(event.stage)} · ${escapeHtml(event.status)}</strong>
+      <span>${escapeHtml(event.recorded_at)} · next: ${escapeHtml(event.next_action)}</span>
     </div>
   `).join('');
 }
@@ -191,6 +219,33 @@ async function dryRunCreate(candidate) {
   renderAudit();
 }
 
+async function confirmedCreate(candidate) {
+  const dedupeEvidence = window.prompt('Dedupe evidence required before GitHub write:', 'operator checked: no duplicate found');
+  if (!dedupeEvidence) return;
+  const confirmation = window.prompt('Type CONFIRM_CREATE_GITHUB_ISSUE to create a real GitHub issue:', '');
+  if (confirmation !== 'CONFIRM_CREATE_GITHUB_ISSUE') {
+    window.alert('Owner confirmation did not match; create blocked.');
+    return;
+  }
+  if (!window.confirm('This will call gh issue create through the local backend. Continue?')) return;
+  const payload = await requestJson('/api/issue-create', {
+    method: 'POST',
+    body: JSON.stringify({
+      candidate_id: candidate.candidate_id,
+      repo: 'rlaope/omh-management',
+      source: 'dashboard',
+      owner_confirmation: confirmation,
+      dedupe_evidence: dedupeEvidence,
+      actor: 'dashboard',
+      execute: true,
+    }),
+  });
+  renderPreview(payload.preview);
+  state.audit.push(payload.audit_event);
+  renderAudit();
+  window.alert(`Created: ${payload.issue_url}`);
+}
+
 function wireEvents() {
   document.querySelectorAll('.toolbar button').forEach((button) => {
     button.addEventListener('click', () => {
@@ -216,6 +271,10 @@ function wireEvents() {
       }
       if (target.dataset.action === 'create') {
         await dryRunCreate(candidate);
+        return;
+      }
+      if (target.dataset.action === 'confirmed-create') {
+        await confirmedCreate(candidate);
       }
     } catch (error) {
       window.alert(error.message || String(error));

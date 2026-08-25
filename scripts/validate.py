@@ -27,6 +27,19 @@ CANDIDATE_REQUIRED = {
     "claim_boundary",
 }
 AUDIT_REQUIRED = {"schema_version", "event_id", "event_type", "actor", "candidate_id", "recorded_at", "details"}
+BRIEFING_REQUIRED = {
+    "schema_version",
+    "event_id",
+    "stage",
+    "status",
+    "actor",
+    "candidate_id",
+    "recorded_at",
+    "next_action",
+    "blocked_by",
+    "observed_result",
+    "details",
+}
 
 
 def load_json(path: Path):
@@ -63,14 +76,29 @@ def validate_audit_event(item: dict) -> list[str]:
     return errors
 
 
+def validate_briefing_event(item: dict) -> list[str]:
+    errors: list[str] = []
+    missing = sorted(BRIEFING_REQUIRED - set(item))
+    if missing:
+        errors.append(f"{item.get('event_id', 'unknown')}: missing {', '.join(missing)}")
+    if item.get("schema_version") != "briefing_event/v1":
+        errors.append(f"{item.get('event_id', 'unknown')}: invalid schema_version")
+    if item.get("details", {}).get("briefing_events_are_not_evidence_events") is not True:
+        errors.append(f"{item.get('event_id', 'unknown')}: must mark briefing != evidence")
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     candidates = load_json(ROOT / "data" / "sample-candidates.json")
     audit = load_json(ROOT / "data" / "sample-audit-log.json")
+    briefing = load_json(ROOT / "data" / "sample-briefing-log.json")
     for item in candidates:
         errors.extend(validate_candidate(item))
     for item in audit:
         errors.extend(validate_audit_event(item))
+    for item in briefing:
+        errors.extend(validate_briefing_event(item))
 
     required_files = [
         ROOT / "PRODUCT_CONTRACT.md",
@@ -80,6 +108,7 @@ def main() -> int:
         ROOT / "dashboard" / "app.js",
         ROOT / "scripts" / "manage.py",
         ROOT / "scripts" / "server.py",
+        ROOT / "data" / "source-state.json",
     ]
     for path in required_files:
         if not path.exists():
@@ -88,7 +117,17 @@ def main() -> int:
     if errors:
         print(json.dumps({"ok": False, "errors": errors}, indent=2))
         return 1
-    print(json.dumps({"ok": True, "candidate_count": len(candidates), "audit_event_count": len(audit)}, indent=2))
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "candidate_count": len(candidates),
+                "audit_event_count": len(audit),
+                "briefing_event_count": len(briefing),
+            },
+            indent=2,
+        )
+    )
     return 0
 
 
