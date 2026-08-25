@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OMH Management Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">OMH Management</p>
+      <h1>Hermes / OMH Upstream Scout Console</h1>
+      <p class="muted">Candidate review, briefing status, and confirmation-gated issue preview. No external writes from this dashboard skeleton.</p>
+    </div>
+    <div class="status-pill blocked">OMH repo cleanup: blocked_by destructive approval</div>
+  </header>
+
+  <main>
+    <section class="summary-grid" id="summary"></section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Scout cards</p>
+          <h2>Action mapping queue</h2>
+        </div>
+        <div class="toolbar">
+          <button data-filter="all" class="active">All</button>
+          <button data-filter="adopt">Adopt</button>
+          <button data-filter="watch">Watch</button>
+          <button data-filter="ignore">Ignore</button>
+        </div>
+      </div>
+      <div id="candidate-list" class="candidate-list"></div>
+    </section>
+
+    <section class="detail-grid">
+      <article class="panel">
+        <p class="eyebrow">Issue preview</p>
+        <h2 id="preview-title">Select an issue candidate</h2>
+        <pre id="issue-preview">Issue writes are disabled until preview → dedupe → owner confirmation → audit.</pre>
+        <div class="gate-list" id="issue-gates"></div>
+      </article>
+
+      <article class="panel">
+        <p class="eyebrow">Audit / briefing</p>
+        <h2>Recent events</h2>
+        <div id="audit-log" class="audit-log"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

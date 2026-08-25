@@ -1,0 +1,81 @@
+[
+  {
+    "blocked_by": [
+      "no local runtime verification",
+      "owner decision on dashboard copy"
+    ],
+    "candidate_id": "scout_hermes_delegate_resume",
+    "changed_contract": "Delegated work can expose resumable handles and status metadata.",
+    "claim_boundary": "This card is upstream evidence and action mapping only; it is not implementation, review, CI, merge, or local Hermes runtime observation evidence.",
+    "evidence_type": "docs",
+    "executor_neutrality_impact": "Applies to Hermes-native delegation and should not imply Codex-only ownership.",
+    "implementation_status": "none",
+    "issue_candidate": true,
+    "issue_draft": {
+      "body": "## Upstream evidence\n- Source: Hermes Agent docs: delegate_task tool semantics\n- Evidence type: docs\n\n## OMH Management mapping\nShow resumable handles in operator briefings without claiming execution.\n\n## Gates\n- Dedupe required\n- Owner confirmation required\n- Audit event required",
+      "dedupe_query": "repo:rlaope/oh-my-hermes is:issue resumable Hermes delegation status",
+      "title": "Add dashboard support for resumable Hermes delegation status"
+    },
+    "observed_evidence": [],
+    "prepared_vs_observed_impact": "Docs evidence only; not a local Hermes runtime observation until a command/source/result/timestamp tuple is attached.",
+    "schema_version": "scout_candidate/v1",
+    "source_date": "2026-08-24",
+    "target_surface": "dashboard",
+    "title": "Expose resumable Hermes delegation status in OMH briefings",
+    "triage_state": "adopt",
+    "upstream_source": "Hermes Agent docs: delegate_task tool semantics",
+    "user_facing_intent": "When I ask what is running, show which delegated lane can be resumed or steered."
+  },
+  {
+    "blocked_by": [
+      "destructive cleanup approval required in OMH repo"
+    ],
+    "candidate_id": "scout_cleanup_wrong_repo",
+    "changed_contract": "The upstream scout dashboard belongs in omh-management, not oh-my-hermes core.",
+    "claim_boundary": "This is a cleanup tracking candidate in omh-management; it does not mean the OMH repo has been cleaned yet.",
+    "evidence_type": "code",
+    "executor_neutrality_impact": "Prevents OMH core from becoming a hidden management runtime for any executor.",
+    "implementation_status": "prepared",
+    "issue_candidate": false,
+    "issue_draft": {
+      "body": "",
+      "dedupe_query": "",
+      "title": ""
+    },
+    "observed_evidence": [],
+    "prepared_vs_observed_impact": "Cleanup is not observed because destructive approval is still blocked.",
+    "schema_version": "scout_candidate/v1",
+    "source_date": "2026-08-24",
+    "target_surface": "dashboard",
+    "title": "Clean up misplaced OMH-core upstream scout experiment",
+    "triage_state": "adopt",
+    "upstream_source": "Local work session correction",
+    "user_facing_intent": "Keep OMH core clean while the external console owns scout/dashboard work."
+  },
+  {
+    "blocked_by": [
+      "cron runner not configured"
+    ],
+    "candidate_id": "scout_cron_no_writes",
+    "changed_contract": "Cron/scout path has no external writes and cannot raise GitHub issues.",
+    "claim_boundary": "This candidate describes a cron contract; no cron execution has been observed.",
+    "evidence_type": "docs",
+    "executor_neutrality_impact": "Keeps scout work independent from Codex, Claude Code, Hermes, or generic executor implementation paths.",
+    "implementation_status": "none",
+    "issue_candidate": false,
+    "issue_draft": {
+      "body": "",
+      "dedupe_query": "",
+      "title": ""
+    },
+    "observed_evidence": [],
+    "prepared_vs_observed_impact": "Cron blueprint is prepared, not a scheduled job or observed run yet.",
+    "schema_version": "scout_candidate/v1",
+    "source_date": "2026-08-24",
+    "target_surface": "cron",
+    "title": "Daily scout cron must produce candidates only",
+    "triage_state": "adopt",
+    "upstream_source": "Product contract",
+    "user_facing_intent": "Show me daily learning candidates without polluting GitHub backlog."
+  }
+]

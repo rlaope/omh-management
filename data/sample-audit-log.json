@@ -1,0 +1,65 @@
+[
+  {
+    "actor": "bipani",
+    "candidate_id": "project",
+    "details": {
+      "evidence_event": false,
+      "message": "PRODUCT_CONTRACT.md initialized"
+    },
+    "event_id": "audit_contract_initialized",
+    "event_type": "briefing_emitted",
+    "recorded_at": "2026-08-24T00:00:00Z",
+    "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "bipani",
+    "candidate_id": "scout_cleanup_wrong_repo",
+    "details": {
+      "external_write": false,
+      "reason": "destructive cleanup approval still required"
+    },
+    "event_id": "audit_cleanup_blocked",
+    "event_type": "github_issue_blocked",
+    "recorded_at": "2026-08-24T00:01:00Z",
+    "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "operator",
+    "candidate_id": "scout_cron_no_writes",
+    "details": {
+      "external_write": false,
+      "next": "adopt",
+      "previous": "watch"
+    },
+    "event_id": "audit_triage_changed_de6841a7d43c",
+    "event_type": "triage_changed",
+    "recorded_at": "2026-08-25T04:01:15Z",
+    "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "operator",
+    "candidate_id": "scout_hermes_delegate_resume",
+    "details": {
+      "dedupe_query": "repo:rlaope/oh-my-hermes is:issue resumable Hermes delegation status",
+      "external_write": false
+    },
+    "event_id": "audit_issue_previewed_83595fe7a327",
+    "event_type": "issue_previewed",
+    "recorded_at": "2026-08-25T04:01:15Z",
+    "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "operator",
+    "candidate_id": "scout_hermes_delegate_resume",
+    "details": {
+      "dedupe_evidence_sha256": "13acad5ead186488e77f532e984ee327f2481d1ee49d1914faa1a448164db96e",
+      "external_write": false,
+      "repo": "rlaope/oh-my-hermes",
+      "source": "dashboard"
+    },
+    "event_id": "audit_github_issue_blocked_83595fe7a327",
+    "event_type": "github_issue_blocked",
+    "recorded_at": "2026-08-25T04:01:15Z",
+    "schema_version": "audit_event/v1"
+  }
+]

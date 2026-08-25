@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/omh-management/schemas/scout-candidate.schema.json",
+  "title": "OMH Management Scout Candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_id",
+    "title",
+    "upstream_source",
+    "source_date",
+    "evidence_type",
+    "changed_contract",
+    "user_facing_intent",
+    "target_surface",
+    "prepared_vs_observed_impact",
+    "executor_neutrality_impact",
+    "triage_state",
+    "implementation_status",
+    "observed_evidence",
+    "blocked_by",
+    "issue_candidate",
+    "issue_draft",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": { "const": "scout_candidate/v1" },
+    "candidate_id": { "type": "string", "pattern": "^scout_[a-zA-Z0-9_-]+$" },
+    "title": { "type": "string", "minLength": 1 },
+    "upstream_source": { "type": "string", "minLength": 1 },
+    "source_date": { "type": "string", "minLength": 1 },
+    "evidence_type": { "enum": ["docs", "code", "release", "runtime_observed"] },
+    "changed_contract": { "type": "string", "minLength": 1 },
+    "user_facing_intent": { "type": "string", "minLength": 1 },
+    "target_surface": { "enum": ["skill", "catalog", "doctor", "setup", "update", "handoff", "review_gate", "dashboard", "cron", "docs"] },
+    "prepared_vs_observed_impact": { "type": "string" },
+    "executor_neutrality_impact": { "type": "string" },
+    "triage_state": { "enum": ["adopt", "watch", "ignore"] },
+    "implementation_status": { "enum": ["none", "prepared", "applied", "locally_verified"] },
+    "observed_evidence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/observed_evidence" }
+    },
+    "blocked_by": { "type": "array", "items": { "type": "string" } },
+    "issue_candidate": { "type": "boolean" },
+    "issue_draft": { "$ref": "#/$defs/issue_draft" },
+    "claim_boundary": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "observed_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "source", "result", "timestamp"],
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "minLength": 1 },
+        "timestamp": { "type": "string", "minLength": 1 }
+      }
+    },
+    "issue_draft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "body", "dedupe_query"],
+      "properties": {
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "dedupe_query": { "type": "string" }
+      }
+    }
+  }
+}

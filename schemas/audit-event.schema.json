@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/omh-management/schemas/audit-event.schema.json",
+  "title": "OMH Management Audit Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "event_type", "actor", "candidate_id", "recorded_at", "details"],
+  "properties": {
+    "schema_version": { "const": "audit_event/v1" },
+    "event_id": { "type": "string", "minLength": 1 },
+    "event_type": { "enum": ["candidate_recorded", "triage_changed", "issue_previewed", "dedupe_attached", "owner_confirmed", "github_issue_created", "github_issue_blocked", "briefing_emitted"] },
+    "actor": { "type": "string", "minLength": 1 },
+    "candidate_id": { "type": "string", "minLength": 1 },
+    "recorded_at": { "type": "string", "minLength": 1 },
+    "details": { "type": "object" }
+  }
+}
