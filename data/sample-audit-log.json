@@ -61,5 +61,44 @@
     "event_type": "github_issue_blocked",
     "recorded_at": "2026-08-25T04:01:15Z",
     "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "api-test",
+    "candidate_id": "scout_cron_no_writes",
+    "details": {
+      "external_write": false,
+      "next": "watch",
+      "previous": "adopt"
+    },
+    "event_id": "audit_triage_changed_813d9a620ef6",
+    "event_type": "triage_changed",
+    "recorded_at": "2026-08-25T04:28:41Z",
+    "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "api-test",
+    "candidate_id": "scout_hermes_delegate_resume",
+    "details": {
+      "dedupe_query": "repo:rlaope/oh-my-hermes is:issue resumable Hermes delegation status",
+      "external_write": false
+    },
+    "event_id": "audit_issue_previewed_6b1f9375c374",
+    "event_type": "issue_previewed",
+    "recorded_at": "2026-08-25T04:28:41Z",
+    "schema_version": "audit_event/v1"
+  },
+  {
+    "actor": "api-test",
+    "candidate_id": "scout_hermes_delegate_resume",
+    "details": {
+      "dedupe_evidence_sha256": "2c249348708d0b336079daa4b84c688428fadc67782f4521fa4802773de12677",
+      "external_write": false,
+      "repo": "rlaope/omh-management",
+      "source": "dashboard"
+    },
+    "event_id": "audit_github_issue_blocked_6b1f9375c374",
+    "event_type": "github_issue_blocked",
+    "recorded_at": "2026-08-25T04:28:41Z",
+    "schema_version": "audit_event/v1"
   }
 ]

@@ -2,6 +2,7 @@ const state = {
   candidates: [],
   audit: [],
   filter: 'all',
+  apiMode: false,
 };
 
 const gates = [
@@ -12,10 +13,38 @@ const gates = [
   ['GitHub write enabled', false],
 ];
 
+async function requestJson(path, options = {}) {
+  const response = await fetch(path, {
+    headers: { 'content-type': 'application/json' },
+    ...options,
+  });
+  const payload = await response.json();
+  if (!response.ok || payload.ok === false) throw new Error(payload.error || `Request failed: ${path}`);
+  return payload;
+}
+
 async function loadJson(path) {
   const response = await fetch(path);
   if (!response.ok) throw new Error(`Failed to load ${path}: ${response.status}`);
   return response.json();
+}
+
+async function loadState() {
+  try {
+    const [candidatePayload, auditPayload] = await Promise.all([
+      requestJson('/api/candidates'),
+      requestJson('/api/audit'),
+    ]);
+    state.candidates = candidatePayload.candidates;
+    state.audit = auditPayload.audit;
+    state.apiMode = true;
+  } catch (_error) {
+    [state.candidates, state.audit] = await Promise.all([
+      loadJson('../data/sample-candidates.json'),
+      loadJson('../data/sample-audit-log.json'),
+    ]);
+    state.apiMode = false;
+  }
 }
 
 function metric(label, value) {
@@ -33,6 +62,8 @@ function renderSummary() {
     metric('issue previews', issueReady),
     metric('locally observed', observed),
   ].join('');
+  const mode = document.querySelector('#mode-status');
+  if (mode) mode.textContent = state.apiMode ? 'persisted API mode' : 'static preview mode';
 }
 
 function renderCandidates() {
@@ -62,7 +93,7 @@ function renderCandidates() {
         <button data-candidate="${item.candidate_id}" data-action="watch">Mark watch</button>
         <button data-candidate="${item.candidate_id}" data-action="ignore">Mark ignore</button>
         <button data-candidate="${item.candidate_id}" data-action="preview" ${item.issue_candidate ? '' : 'disabled'}>Issue preview</button>
-        <button disabled>Confirmed create disabled in skeleton</button>
+        <button data-candidate="${item.candidate_id}" data-action="create" ${item.issue_candidate && state.apiMode ? '' : 'disabled'}>Dry-run create gate</button>
       </div>
     </article>
   `).join('');
@@ -77,17 +108,23 @@ function renderAudit() {
   `).join('');
 }
 
-function renderPreview(candidate) {
-  document.querySelector('#preview-title').textContent = candidate.issue_draft.title || 'No issue draft';
-  document.querySelector('#issue-preview').textContent = candidate.issue_candidate
-    ? `${candidate.issue_draft.body}\n\nDedupe query:\n${candidate.issue_draft.dedupe_query}`
-    : 'This candidate is not marked issue_candidate.';
+function renderPreview(preview) {
+  document.querySelector('#preview-title').textContent = preview.title || 'No issue draft';
+  document.querySelector('#issue-preview').textContent = `${preview.body}\n\nDedupe query:\n${preview.dedupe_query}`;
   document.querySelector('#issue-gates').innerHTML = gates.map(([label, ok]) => `
     <div class="gate">${ok ? '✓' : '□'} ${label}</div>
   `).join('');
 }
 
-function addAudit(eventType, candidateId, details = {}) {
+function localPreview(candidate) {
+  return {
+    title: candidate.issue_draft.title,
+    body: candidate.issue_draft.body,
+    dedupe_query: candidate.issue_draft.dedupe_query,
+  };
+}
+
+function addLocalAudit(eventType, candidateId, details = {}) {
   state.audit.push({
     schema_version: 'audit_event/v1',
     event_id: `ui_${eventType}_${candidateId}_${Date.now()}`,
@@ -100,12 +137,58 @@ function addAudit(eventType, candidateId, details = {}) {
   renderAudit();
 }
 
-function setTriage(candidate, triageState) {
-  const previous = candidate.triage_state;
-  candidate.triage_state = triageState;
-  addAudit('triage_changed', candidate.candidate_id, { previous, next: triageState, persisted: false });
+async function setTriage(candidate, triageState) {
+  if (state.apiMode) {
+    const payload = await requestJson('/api/triage', {
+      method: 'POST',
+      body: JSON.stringify({ candidate_id: candidate.candidate_id, state: triageState, actor: 'dashboard' }),
+    });
+    Object.assign(candidate, payload.candidate);
+    state.audit.push(payload.audit_event);
+  } else {
+    const previous = candidate.triage_state;
+    candidate.triage_state = triageState;
+    addLocalAudit('triage_changed', candidate.candidate_id, { previous, next: triageState, persisted: false });
+  }
   renderSummary();
   renderCandidates();
+  renderAudit();
+}
+
+async function previewIssue(candidate) {
+  if (state.apiMode) {
+    const payload = await requestJson('/api/issue-preview', {
+      method: 'POST',
+      body: JSON.stringify({ candidate_id: candidate.candidate_id, actor: 'dashboard' }),
+    });
+    renderPreview(payload.preview);
+    state.audit.push(payload.audit_event);
+  } else {
+    renderPreview(localPreview(candidate));
+    addLocalAudit('issue_previewed', candidate.candidate_id, { persisted: false, github_write_enabled: false });
+  }
+  renderAudit();
+}
+
+async function dryRunCreate(candidate) {
+  const dedupeEvidence = window.prompt('Dedupe evidence required before any GitHub write:', 'operator checked: no duplicate found');
+  if (!dedupeEvidence) return;
+  const confirmation = window.prompt('Type CONFIRM_CREATE_GITHUB_ISSUE to pass the create gate. This still dry-runs unless backend execute is true:', '');
+  const payload = await requestJson('/api/issue-create', {
+    method: 'POST',
+    body: JSON.stringify({
+      candidate_id: candidate.candidate_id,
+      repo: 'rlaope/omh-management',
+      source: 'dashboard',
+      owner_confirmation: confirmation,
+      dedupe_evidence: dedupeEvidence,
+      actor: 'dashboard',
+      execute: false,
+    }),
+  });
+  renderPreview(payload.preview);
+  state.audit.push(payload.audit_event);
+  renderAudit();
 }
 
 function wireEvents() {
@@ -117,18 +200,25 @@ function wireEvents() {
       renderCandidates();
     });
   });
-  document.querySelector('#candidate-list').addEventListener('click', (event) => {
+  document.querySelector('#candidate-list').addEventListener('click', async (event) => {
     const target = event.target;
     if (!(target instanceof HTMLButtonElement)) return;
     const candidate = state.candidates.find((item) => item.candidate_id === target.dataset.candidate);
     if (!candidate) return;
-    if (['adopt', 'watch', 'ignore'].includes(target.dataset.action)) {
-      setTriage(candidate, target.dataset.action);
-      return;
-    }
-    if (target.dataset.action === 'preview') {
-      renderPreview(candidate);
-      addAudit('issue_previewed', candidate.candidate_id, { persisted: false, github_write_enabled: false });
+    try {
+      if (['adopt', 'watch', 'ignore'].includes(target.dataset.action)) {
+        await setTriage(candidate, target.dataset.action);
+        return;
+      }
+      if (target.dataset.action === 'preview') {
+        await previewIssue(candidate);
+        return;
+      }
+      if (target.dataset.action === 'create') {
+        await dryRunCreate(candidate);
+      }
+    } catch (error) {
+      window.alert(error.message || String(error));
     }
   });
 }
@@ -143,10 +233,7 @@ function escapeHtml(value) {
 }
 
 async function main() {
-  [state.candidates, state.audit] = await Promise.all([
-    loadJson('../data/sample-candidates.json'),
-    loadJson('../data/sample-audit-log.json'),
-  ]);
+  await loadState();
   renderSummary();
   renderCandidates();
   renderAudit();

@@ -71,10 +71,10 @@ def append_audit(event_type: str, candidate_id: str, *, actor: str, details: dic
     return event
 
 
-def cmd_dashboard(_args: argparse.Namespace) -> int:
+def dashboard_state() -> dict[str, Any]:
     candidates = load_candidates()
     audit = load_audit()
-    payload = {
+    return {
         "schema_version": "dashboard_state/v1",
         "candidate_count": len(candidates),
         "triage": {state: sum(1 for item in candidates if item.get("triage_state") == state) for state in sorted(TRIAGE_STATES)},
@@ -84,24 +84,32 @@ def cmd_dashboard(_args: argparse.Namespace) -> int:
         "cleanup_status": "OMH repo cleanup: blocked_by destructive approval",
         "github_write_default": "disabled",
     }
+
+
+def cmd_dashboard(_args: argparse.Namespace) -> int:
+    payload = dashboard_state()
     print(json.dumps(payload, indent=2, sort_keys=True))
     return 0
 
 
-def cmd_triage(args: argparse.Namespace) -> int:
-    if args.state not in TRIAGE_STATES:
+def set_triage(candidate_id: str, state: str, *, actor: str) -> dict[str, Any]:
+    if state not in TRIAGE_STATES:
         raise ValueError("invalid triage state")
-    candidates, candidate = find_candidate(args.candidate_id)
+    candidates, candidate = find_candidate(candidate_id)
     previous = str(candidate.get("triage_state", ""))
-    candidate["triage_state"] = args.state
+    candidate["triage_state"] = state
     write_json(CANDIDATES_PATH, candidates)
     event = append_audit(
         "triage_changed",
-        args.candidate_id,
-        actor=args.actor,
-        details={"previous": previous, "next": args.state, "external_write": False},
+        candidate_id,
+        actor=actor,
+        details={"previous": previous, "next": state, "external_write": False},
     )
-    print(json.dumps({"ok": True, "candidate": candidate, "audit_event": event}, indent=2, sort_keys=True))
+    return {"candidate": candidate, "audit_event": event}
+
+
+def cmd_triage(args: argparse.Namespace) -> int:
+    print(json.dumps({"ok": True, **set_triage(args.candidate_id, args.state, actor=args.actor)}, indent=2, sort_keys=True))
     return 0
 
 
@@ -121,16 +129,20 @@ def build_issue_preview(candidate: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def cmd_issue_preview(args: argparse.Namespace) -> int:
-    _, candidate = find_candidate(args.candidate_id)
+def issue_preview(candidate_id: str, *, actor: str) -> dict[str, Any]:
+    _, candidate = find_candidate(candidate_id)
     preview = build_issue_preview(candidate)
     event = append_audit(
         "issue_previewed",
-        args.candidate_id,
-        actor=args.actor,
+        candidate_id,
+        actor=actor,
         details={"external_write": False, "dedupe_query": preview["dedupe_query"]},
     )
-    print(json.dumps({"ok": True, "preview": preview, "audit_event": event}, indent=2, sort_keys=True))
+    return {"preview": preview, "audit_event": event}
+
+
+def cmd_issue_preview(args: argparse.Namespace) -> int:
+    print(json.dumps({"ok": True, **issue_preview(args.candidate_id, actor=args.actor)}, indent=2, sort_keys=True))
     return 0
 
 
@@ -144,29 +156,59 @@ def run_gh_issue_create(repo: str, title: str, body: str) -> str:
     return result.stdout.strip().splitlines()[-1]
 
 
-def cmd_issue_create(args: argparse.Namespace) -> int:
-    source = args.source.strip().lower().replace("-", "_")
-    if source in FORBIDDEN_CREATE_SOURCES:
+def issue_create(
+    candidate_id: str,
+    *,
+    repo: str,
+    source: str,
+    owner_confirmation: str,
+    dedupe_evidence: str,
+    actor: str,
+    execute: bool = False,
+) -> dict[str, Any]:
+    normalized_source = source.strip().lower().replace("-", "_")
+    if normalized_source in FORBIDDEN_CREATE_SOURCES:
         raise ValueError("GitHub issue creation is forbidden from cron/scout sources")
-    if args.owner_confirmation != CONFIRMATION:
+    if owner_confirmation != CONFIRMATION:
         raise ValueError(f"owner confirmation must be {CONFIRMATION}")
-    if not args.dedupe_evidence.strip():
+    if not dedupe_evidence.strip():
         raise ValueError("dedupe_evidence is required")
-    if "/" not in args.repo:
+    if "/" not in repo:
         raise ValueError("repo must be OWNER/REPO")
-    _, candidate = find_candidate(args.candidate_id)
+    _, candidate = find_candidate(candidate_id)
     preview = build_issue_preview(candidate)
     details = {
-        "repo": args.repo,
-        "source": args.source,
-        "dedupe_evidence_sha256": hashlib.sha256(args.dedupe_evidence.encode("utf-8")).hexdigest(),
-        "external_write": bool(args.execute),
+        "repo": repo,
+        "source": source,
+        "dedupe_evidence_sha256": hashlib.sha256(dedupe_evidence.encode("utf-8")).hexdigest(),
+        "external_write": bool(execute),
     }
     issue_url = ""
-    if args.execute:
-        issue_url = run_gh_issue_create(args.repo, preview["title"], preview["body"])
-    event = append_audit("github_issue_created" if args.execute else "github_issue_blocked", args.candidate_id, actor=args.actor, details=details)
-    print(json.dumps({"ok": True, "dry_run": not args.execute, "created": bool(args.execute), "issue_url": issue_url, "preview": preview, "audit_event": event}, indent=2, sort_keys=True))
+    if execute:
+        issue_url = run_gh_issue_create(repo, preview["title"], preview["body"])
+    event = append_audit("github_issue_created" if execute else "github_issue_blocked", candidate_id, actor=actor, details=details)
+    return {"dry_run": not execute, "created": bool(execute), "issue_url": issue_url, "preview": preview, "audit_event": event}
+
+
+def cmd_issue_create(args: argparse.Namespace) -> int:
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                **issue_create(
+                    args.candidate_id,
+                    repo=args.repo,
+                    source=args.source,
+                    owner_confirmation=args.owner_confirmation,
+                    dedupe_evidence=args.dedupe_evidence,
+                    actor=args.actor,
+                    execute=args.execute,
+                ),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 

@@ -8,16 +8,16 @@ Separate ops console for Hermes/OMH ecosystem intelligence.
 
 ## Current artifact
 
-This repository starts with a static, preview-only dashboard skeleton. It can review sample scout candidates, show blocked cleanup state, preview issue drafts, and display audit events. It does not create GitHub issues or modify OMH.
+This repository starts with a local persisted dashboard MVP. It can review sample scout candidates, persist triage changes, show blocked cleanup state, preview issue drafts, dry-run the confirmed issue gate, and display audit events. It does not modify OMH.
 
 ## Run locally
 
 ```sh
-python3 -m http.server 4173
-# open http://localhost:4173/dashboard/index.html
+python3 scripts/server.py
+# open http://127.0.0.1:4174/dashboard/index.html
 ```
 
-Or open `dashboard/index.html` directly in a browser.
+Opening `dashboard/index.html` directly still works as static preview mode, but persisted triage and API-backed issue previews require `scripts/server.py`.
 
 ## Validate
 
@@ -44,6 +44,6 @@ The first `issue-create` call must reject. The second remains a dry run unless `
 ## Safety boundary
 
 - Cron/scout paths have no external writes.
-- GitHub issue raising is preview-only in this skeleton.
-- Real issue creation must require preview, dedupe evidence, owner confirmation, and audit logging.
+- Dashboard issue raising dry-runs by default.
+- Real issue creation must require preview, dedupe evidence, owner confirmation, audit logging, and an explicit backend `execute` path.
 - OMH repo cleanup remains a separate blocked status until destructive cleanup approval is observed.

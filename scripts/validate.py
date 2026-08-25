@@ -78,6 +78,8 @@ def main() -> int:
         ROOT / "dashboard" / "index.html",
         ROOT / "dashboard" / "styles.css",
         ROOT / "dashboard" / "app.js",
+        ROOT / "scripts" / "manage.py",
+        ROOT / "scripts" / "server.py",
     ]
     for path in required_files:
         if not path.exists():

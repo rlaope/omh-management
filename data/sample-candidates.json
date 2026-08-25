@@ -74,7 +74,7 @@
     "source_date": "2026-08-24",
     "target_surface": "cron",
     "title": "Daily scout cron must produce candidates only",
-    "triage_state": "adopt",
+    "triage_state": "watch",
     "upstream_source": "Product contract",
     "user_facing_intent": "Show me daily learning candidates without polluting GitHub backlog."
   }

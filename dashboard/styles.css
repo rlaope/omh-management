@@ -33,6 +33,7 @@ h1 { margin-bottom: 10px; font-size: clamp(28px, 4vw, 46px); letter-spacing: -0.
 h2 { margin-bottom: 12px; }
 main { padding: 0 20px 40px; }
 .muted { color: var(--muted); line-height: 1.5; }
+.mode { display: inline-flex; margin: 4px 0 0; border: 1px solid rgba(34, 197, 94, 0.35); border-radius: 999px; padding: 6px 10px; color: #bbf7d0; background: rgba(34, 197, 94, 0.1); font-size: 12px; }
 .eyebrow { color: var(--accent-2); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 8px; }
 .status-pill { border: 1px solid var(--border); border-radius: 999px; padding: 10px 14px; white-space: nowrap; background: var(--panel); box-shadow: 0 10px 35px var(--shadow); font-size: 13px; }
 .status-pill.blocked { color: #ffd166; border-color: rgba(245, 158, 11, 0.45); }
